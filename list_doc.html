@@ -10,8 +10,8 @@
         body {
             font-family: 'Prompt', sans-serif;
             background-color: #f4f6f9;
+            padding-top: 80px; 
         }
-    
         .header-title {
             text-align: center;
             font-weight: bold;
@@ -66,9 +66,6 @@
             padding: 10px 30px;
             margin-top: 20px;
         }
-
-        /* CSS สำหรับเมนูด้านบน */
-        body { padding-top: 80px; }
         @media all and (min-width: 992px) {
             .navbar .dropdown-menu { display: none; border-radius: 10px; margin-top: 0; }
             .navbar .nav-item:hover .dropdown-menu { display: block; animation: fadeUp 0.3s forwards; }
@@ -77,7 +74,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-    
     </style>
 </head>
 <body>
@@ -117,11 +113,11 @@
                     <th>ผู้รับผิดชอบ</th>
                     <th>วันที่ดำเนินการแล้วเสร็จ</th>
                     <th>สถานะ</th>
-                    <th>รวมเวลาที่ดำเนินงาน (วัน)</th>
+                    <th>รวมเวลา (วัน)</th>
+                    <th style="min-width: 140px;">จัดการ</th> 
                 </tr>
             </thead>
             <tbody id="tableBody">
-             
             </tbody>
         </table>
     </div>
@@ -129,20 +125,131 @@
     <div class="text-end mb-4">
         <a href="Doc_In.html" class="btn btn-back">กลับหน้าแรก</a>
     </div>
-
 </div>
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title fw-bold">✏️ แก้ไขข้อมูลหนังสือ</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm">
+          <input type="hidden" id="edit_id"> <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">เลขที่หนังสือ</label>
+              <input type="text" class="form-control" id="edit_numdoc">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">พ.ศ.</label>
+              <input type="number" class="form-control" id="edit_year">
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <label class="form-label fw-bold">เรื่อง</label>
+              <input type="text" class="form-control" id="edit_title">
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">วันที่ลงรับหนังสือ</label>
+              <input type="date" class="form-control" id="edit_doc_in_date">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">ลงวันที่ (ในเอกสาร)</label>
+              <input type="date" class="form-control" id="edit_dateofdoc">
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">ประเภทหนังสือ</label>
+              <select class="form-control" id="edit_type">
+                  <option value="">-- เลือกประเภท --</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">สถานะ</label>
+              <select class="form-control" id="edit_status">
+                  <option value="">-- เลือกสถานะ --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">จาก (หน่วยงาน)</label>
+              <select class="form-control" id="edit_from">
+                  <option value="">-- เลือกหน่วยงาน --</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">ถึง (หน่วยงาน)</label>
+              <select class="form-control" id="edit_to">
+                  <option value="">-- เลือกหน่วยงาน --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+              <label class="form-label fw-bold">รายละเอียด</label>
+              <textarea class="form-control" id="edit_detail" rows="3"></textarea>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-success" onclick="saveEdit()">💾 บันทึกการแก้ไข</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // รับค่าพารามิเตอร์เพื่อใช้ค้นหา
+    let currentData = []; // ตัวแปรเก็บข้อมูลตารางปัจจุบันไว้ใช้ตอนกดแก้ไข
+    let editModal; // ตัวแปรสำหรับคุมหน้าต่าง Modal
+
+    // โหลดข้อมูลตัวเลือก (Dropdowns) เตรียมไว้สำหรับ Modal แบบฟอร์ม
+    async function loadDropdowns() {
+        const [typeRes, statusRes, fromRes] = await Promise.all([
+            supabaseClient.from('Type').select('*'),
+            supabaseClient.from('Doc_Status').select('*'),
+            supabaseClient.from('From').select('*')
+        ]);
+
+        if(typeRes.data) {
+            const typeSel = document.getElementById('edit_type');
+            typeRes.data.forEach(t => typeSel.innerHTML += `<option value="${t.Type_ID}">${t.Type_Name}</option>`);
+        }
+        if(statusRes.data) {
+            const statSel = document.getElementById('edit_status');
+            statusRes.data.forEach(s => statSel.innerHTML += `<option value="${s.Status_ID}">${s.Status_Name}</option>`);
+        }
+        if(fromRes.data) {
+            const fromSel = document.getElementById('edit_from');
+            const toSel = document.getElementById('edit_to');
+            fromRes.data.forEach(f => {
+                fromSel.innerHTML += `<option value="${f.From_ID}">${f.From_Name}</option>`;
+                toSel.innerHTML += `<option value="${f.From_ID}">${f.From_Name}</option>`;
+            });
+        }
+    }
+
     async function loadData(searchNum = '', searchTitle = '', searchStatus = '') {
         const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '<tr><td colspan="14">กำลังโหลดข้อมูล...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="15">กำลังโหลดข้อมูล...</td></tr>';
 
-        // 1. สร้างคำสั่งพื้นฐาน
         let query = supabaseClient
             .from('Doc_Comein')
             .select(`
@@ -151,36 +258,26 @@
                 Doc_Status:Status_ID(Status_Name),
                 FromData:From!Doc_Comein_From_ID_fkey(From_Name),
                 ToData:From!Doc_Comein_To_ID_fkey(From_Name),
-                Responsible_Person(
-                    Person(Name)
-                )
+                Responsible_Person(Person(Name))
             `);
 
-        // 2. เช็คว่ามีการพิมพ์ค้นหาไหม ถ้ามีให้เพิ่มเงื่อนไข Filter
-        if (searchNum) {
-            query = query.ilike('NumDoc', `%${searchNum}%`); // ilike คือหาคำที่มีบางส่วนตรงกัน
-        }
-        if (searchTitle) {
-            query = query.ilike('Title', `%${searchTitle}%`);
-        }
-        if (searchStatus) {
-            query = query.eq('Status_ID', searchStatus); // eq คือค่าต้องตรงกันเป๊ะๆ
-        }
+        if (searchNum) query = query.ilike('NumDoc', `%${searchNum}%`);
+        if (searchTitle) query = query.ilike('Title', `%${searchTitle}%`);
+        if (searchStatus) query = query.eq('Status_ID', searchStatus);
 
-        // 3. สั่งดึงข้อมูลพร้อมจัดเรียง
         const { data, error } = await query.order('ID_Docin', { ascending: true });
 
         if (error) {
-            tbody.innerHTML = `<tr><td colspan="14" class="text-danger">เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
-            console.error("Supabase Error:", error);
+            tbody.innerHTML = `<tr><td colspan="15" class="text-danger">เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
             return;
         }
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="14" class="text-center text-danger fw-bold">ไม่พบข้อมูลที่ค้นหา</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="15" class="text-center text-danger fw-bold">ไม่พบข้อมูลที่ค้นหา</td></tr>';
             return;
         }
 
+        currentData = data; // เก็บข้อมูลไว้ใช้ตอนกด Edit
         tbody.innerHTML = ''; 
         
         data.forEach((row, index) => {
@@ -217,36 +314,109 @@
                 <td>${row.Date_Done ? new Date(row.Date_Done).toLocaleDateString('th-TH') : '-'}</td>
                 <td>${row.Doc_Status ? row.Doc_Status.Status_Name : '-'}</td>
                 <td>${totalDays}</td>
+                <td>
+                    <div class="d-flex gap-1 justify-content-center">
+                        <button class="btn btn-warning btn-sm text-dark fw-bold" onclick="openEditModal(${row.ID_Docin})">✏️ แก้ไข</button>
+                        <button class="btn btn-danger btn-sm fw-bold" onclick="deleteDoc(${row.ID_Docin})">🗑️ ลบ</button>
+                    </div>
+                </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // ฟังก์ชันจัดการตอนกดปุ่มค้นหา
+    // --- ฟังก์ชันสำหรับ การแก้ไข (Edit) ---
+    function openEditModal(id) {
+        // หาข้อมูลของแถวที่ถูกคลิก
+        const row = currentData.find(r => r.ID_Docin === id);
+        if(!row) return;
+
+        // นำค่าไปใส่ในช่อง Input ต่างๆ ใน Modal
+        document.getElementById('edit_id').value = row.ID_Docin;
+        document.getElementById('edit_numdoc').value = row.NumDoc || '';
+        document.getElementById('edit_year').value = row.Year || '';
+        document.getElementById('edit_title').value = row.Title || '';
+        document.getElementById('edit_doc_in_date').value = row.Doc_In_Date || '';
+        document.getElementById('edit_dateofdoc').value = row.DateOfDoc || '';
+        document.getElementById('edit_type').value = row.Type_ID || '';
+        document.getElementById('edit_status').value = row.Status_ID || '';
+        document.getElementById('edit_from').value = row.From_ID || '';
+        document.getElementById('edit_to').value = row.To_ID || '';
+        document.getElementById('edit_detail').value = row.Detail || '';
+
+        // แสดงหน้าต่าง Modal
+        if(!editModal) editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        editModal.show();
+    }
+
+    async function saveEdit() {
+        const id = document.getElementById('edit_id').value;
+        const payload = {
+            NumDoc: document.getElementById('edit_numdoc').value,
+            Year: document.getElementById('edit_year').value,
+            Title: document.getElementById('edit_title').value,
+            Doc_In_Date: document.getElementById('edit_doc_in_date').value || null,
+            DateOfDoc: document.getElementById('edit_dateofdoc').value || null,
+            Type_ID: document.getElementById('edit_type').value || null,
+            Status_ID: document.getElementById('edit_status').value || null,
+            From_ID: document.getElementById('edit_from').value || null,
+            To_ID: document.getElementById('edit_to').value || null,
+            Detail: document.getElementById('edit_detail').value
+        };
+
+        const { error } = await supabaseClient
+            .from('Doc_Comein')
+            .update(payload)
+            .eq('ID_Docin', id);
+
+        if (error) {
+            alert('เกิดข้อผิดพลาด: ' + error.message);
+        } else {
+            alert('✅ บันทึกข้อมูลสำเร็จ!');
+            editModal.hide(); // ปิด Modal
+            loadData(); // รีเฟรชตาราง
+        }
+    }
+
+    // --- ฟังก์ชันสำหรับ การลบ (Delete) ---
+    async function deleteDoc(id) {
+        if(confirm('🚨 คุณต้องการลบหนังสือฉบับนี้ใช่หรือไม่?\n(ข้อมูลจะถูกลบอย่างถาวร)')) {
+            // ลบข้อมูลที่เชื่อมโยงในตาราง Responsible_Person ก่อน เพื่อป้องกัน Error Foreign Key
+            await supabaseClient.from('Responsible_Person').delete().eq('ID_Docin', id);
+            
+            // จากนั้นค่อยลบข้อมูลหลัก
+            const { error } = await supabaseClient.from('Doc_Comein').delete().eq('ID_Docin', id);
+            
+            if (error) {
+                alert('เกิดข้อผิดพลาดในการลบ: ' + error.message);
+            } else {
+                alert('🗑️ ลบข้อมูลสำเร็จ!');
+                loadData(); // รีเฟรชตาราง
+            }
+        }
+    }
+
     document.getElementById('searchForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // ป้องกันไม่ให้หน้าเว็บรีเฟรช
-        
-        const sNum = document.getElementById('search_num').value;
-        const sTitle = document.getElementById('search_title').value;
-        const sStatus = document.getElementById('search_status').value;
-        
-        // เรียกฟังก์ชันดึงข้อมูลแบบใส่เงื่อนไข
-        loadData(sNum, sTitle, sStatus);
+        e.preventDefault();
+        loadData(
+            document.getElementById('search_num').value, 
+            document.getElementById('search_title').value, 
+            document.getElementById('search_status').value
+        );
     });
 
-    // ฟังก์ชันสำหรับล้างค่าการค้นหา
     function resetSearch() {
         document.getElementById('search_num').value = '';
         document.getElementById('search_title').value = '';
         document.getElementById('search_status').value = '';
-        loadData(); // โหลดข้อมูลทั้งหมดใหม่
+        loadData();
     }
 
-    // เรียกใช้งานครั้งแรกตอนเปิดหน้าเว็บ
-    loadData();
+    // เริ่มการทำงาน
+    loadDropdowns(); // โหลดตัวเลือกสำหรับ Form Edit เตรียมไว้ก่อน
+    loadData(); // โหลดตาราง
 </script>
 
 <script src="menu.js"></script>
-
 </body>
 </html>
