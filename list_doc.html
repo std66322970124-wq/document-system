@@ -149,7 +149,13 @@ async function loadData() {
                 *,
                 Type:Type_ID (Type_Name),
                 Doc_Status:Status_ID (Status_Name),
-                From:From_ID (From_Name),
+                
+                /* ดึงชื่อจากตาราง From สำหรับช่อง "จาก" */
+                FromData:From!From_ID (From_Name),
+                
+                /* ดึงชื่อจากตาราง From สำหรับช่อง "ถึง" (ใช้ !To_ID เพื่อระบุจุดเชื่อม) */
+                ToData:From!To_ID (From_Name),
+                
                 Responsible_Person(
                     Person(
                         Name
@@ -185,10 +191,9 @@ async function loadData() {
             // จัดการข้อมูลชื่อผู้รับผิดชอบ (เผื่อมีหลายคน)
             let responsibleNames = '-';
             if (row.Responsible_Person && row.Responsible_Person.length > 0) {
-                // ดึงเฉพาะชื่อออกมา แล้วเอามาต่อกันด้วยลูกน้ำ
                 responsibleNames = row.Responsible_Person
                     .map(rp => rp.Person ? rp.Person.Name : '')
-                    .filter(name => name !== '') // กรองค่าว่างทิ้ง
+                    .filter(name => name !== '') 
                     .join(', ');
             }
 
@@ -200,9 +205,10 @@ async function loadData() {
                 <td>${row.NumDoc || '-'}</td>
                 <td>${row.Year || '-'}</td>
                 <td>${row.DateOfDoc ? new Date(row.DateOfDoc).toLocaleDateString('th-TH') : '-'}</td>
-                <td>${row.From ? row.From.From_Name : '-'}</td>
                 
-                <td>${row.To_ID || '-'}</td> 
+                <td>${row.FromData ? row.FromData.From_Name : '-'}</td>
+                
+                <td class="text-success fw-bold">${row.ToData ? row.ToData.From_Name : (row.To_ID || '-')}</td> 
                 
                 <td>${row.Title || '-'}</td>
                 <td>${row.Detail || '-'}</td>
