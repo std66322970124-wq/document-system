@@ -66,6 +66,18 @@
             padding: 10px 30px;
             margin-top: 20px;
         }
+
+        /* CSS สำหรับเมนูด้านบน */
+        body { padding-top: 80px; }
+        @media all and (min-width: 992px) {
+            .navbar .dropdown-menu { display: none; border-radius: 10px; margin-top: 0; }
+            .navbar .nav-item:hover .dropdown-menu { display: block; animation: fadeUp 0.3s forwards; }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    
     </style>
 </head>
 <body>
@@ -177,6 +189,15 @@
 
     // เรียกใช้งานฟังก์ชันตอนเปิดหน้าเว็บ
     loadData();
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+
+    <script src="menu.js"></script>
 </script>
 </body>
 </html>
