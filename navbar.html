@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
     <div class="container-fluid px-4">
-        <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <a class="navbar-brand d-flex align-items-center" href="dashboard.html">
             <img src="photo/logoNew.png" alt="Logo" height="40" class="me-2">
             <span class="fw-bold fs-5 text-dark d-none d-sm-block">ระบบหนังสือรับ-ส่ง</span>
         </a>
@@ -14,7 +14,7 @@
                         หนังสือรับเข้า
                     </a>
                     <ul class="dropdown-menu shadow-sm border-0">
-                        <li><a class="dropdown-item py-2" href="Doc_In_Register.html">เพิ่มทะเบียนลงรับหนังสือ</a></li>
+                        <li id="menu-add-in" style="display: none;"><a class="dropdown-item py-2" href="Doc_In_Register.html">เพิ่มทะเบียนลงรับหนังสือ</a></li>
                         <li><a class="dropdown-item py-2" href="list_doc.html">ทะเบียนลงรับหนังสือ</a></li>
                     </ul>
                 </li>
@@ -23,7 +23,7 @@
                         หนังสือส่งออก
                     </a>
                     <ul class="dropdown-menu shadow-sm border-0">
-                        <li><a class="dropdown-item py-2" href="#">เพิ่มทะเบียนส่งออกหนังสือ</a></li>
+                        <li id="menu-add-out" style="display: none;"><a class="dropdown-item py-2" href="#">เพิ่มทะเบียนส่งออกหนังสือ</a></li>
                         <li><a class="dropdown-item py-2" href="#">ทะเบียนส่งออกหนังสือ</a></li>
                     </ul>
                 </li>
@@ -40,7 +40,7 @@
                     <button onclick="logout()" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm">ออกจากระบบ</button>
                 </div>
                 <div id="loginBtnMenu" style="display: none;">
-                    <a href="login.html" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold">เข้าสู่ระบบ</a>
+                    <a href="index.html" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold">เข้าสู่ระบบ</a>
                 </div>
             </div>
         </div>
