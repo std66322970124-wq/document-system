@@ -222,14 +222,22 @@
     let editModal; 
     let isLoggedIn = false; 
 
+
     // เช็กสถานะการล็อกอิน
     async function checkAuth() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         isLoggedIn = !!session; 
         
+        // ซ่อน/โชว์ คอลัมน์จัดการ
         const manageHeader = document.getElementById('manageHeader');
         if (manageHeader) {
             manageHeader.style.display = isLoggedIn ? '' : 'none';
+        }
+
+        // --- เพิ่มโค้ดตรงนี้: ซ่อน/โชว์ ปุ่มกลับหน้าแรก ---
+        const btnBackToHome = document.getElementById('btnBackToHome');
+        if (btnBackToHome) {
+            btnBackToHome.style.display = isLoggedIn ? '' : 'none';
         }
     }
 
