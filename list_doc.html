@@ -114,7 +114,7 @@
                     <th>วันที่ดำเนินการแล้วเสร็จ</th>
                     <th>สถานะ</th>
                     <th>รวมเวลา (วัน)</th>
-                    <th style="min-width: 140px;">จัดการ</th> 
+                    <th id="manageHeader" style="min-width: 140px; display: none;">จัดการ</th> 
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -136,7 +136,9 @@
       </div>
       <div class="modal-body">
         <form id="editForm">
-          <input type="hidden" id="edit_id"> <div class="row mb-3">
+          <input type="hidden" id="edit_id"> 
+          
+          <div class="row mb-3">
             <div class="col-md-6">
               <label class="form-label fw-bold">เลขที่หนังสือ</label>
               <input type="text" class="form-control" id="edit_numdoc">
@@ -199,7 +201,6 @@
               <label class="form-label fw-bold">รายละเอียด</label>
               <textarea class="form-control" id="edit_detail" rows="3"></textarea>
           </div>
-
         </form>
       </div>
       <div class="modal-footer">
@@ -217,22 +218,22 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let currentData = [];
-    let editModal;
-    let isLoggedIn = false; // ตัวแปรเก็บสถานะการล็อกอิน
+    let currentData = []; 
+    let editModal; 
+    let isLoggedIn = false; 
 
-    // 1. ฟังก์ชันเช็กสถานะการล็อกอิน
+    // เช็กสถานะการล็อกอิน
     async function checkAuth() {
         const { data: { session } } = await supabaseClient.auth.getSession();
-        isLoggedIn = !!session; // ถ้ามี session จะเป็น true
+        isLoggedIn = !!session; 
         
-        // ถ้าไม่ล็อกอิน ให้ซ่อนหัวตารางคอลัมน์ "จัดการ"
-        const manageHeader = document.querySelector('th:last-child');
-        if (manageHeader && manageHeader.innerText.includes('จัดการ')) {
+        const manageHeader = document.getElementById('manageHeader');
+        if (manageHeader) {
             manageHeader.style.display = isLoggedIn ? '' : 'none';
         }
     }
 
+    // โหลดตัวเลือกสำหรับแบบฟอร์ม
     async function loadDropdowns() {
         const [typeRes, statusRes, fromRes] = await Promise.all([
             supabaseClient.from('Type').select('*'),
@@ -258,12 +259,12 @@
         }
     }
 
+    // โหลดข้อมูลและแสดงผลในตาราง (รองรับการค้นหา)
     async function loadData(searchNum = '', searchTitle = '', searchStatus = '') {
+        await checkAuth();
+
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '<tr><td colspan="15">กำลังโหลดข้อมูล...</td></tr>';
-
-        // เช็กสถานะก่อนดึงข้อมูล
-        await checkAuth();
 
         let query = supabaseClient
             .from('Doc_Comein')
@@ -276,6 +277,7 @@
                 Responsible_Person(Person(Name))
             `);
 
+        // กรองข้อมูลตามที่ค้นหา
         if (searchNum) query = query.ilike('NumDoc', `%${searchNum}%`);
         if (searchTitle) query = query.ilike('Title', `%${searchTitle}%`);
         if (searchStatus) query = query.eq('Status_ID', searchStatus);
@@ -284,6 +286,11 @@
 
         if (error) {
             tbody.innerHTML = `<tr><td colspan="15" class="text-danger">เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="15" class="text-center text-danger fw-bold">ไม่พบข้อมูลที่ค้นหา</td></tr>';
             return;
         }
 
@@ -324,7 +331,6 @@
                 <td>${row.Date_Done ? new Date(row.Date_Done).toLocaleDateString('th-TH') : '-'}</td>
                 <td>${row.Doc_Status ? row.Doc_Status.Status_Name : '-'}</td>
                 <td>${totalDays}</td>
-                
                 <td style="display: ${isLoggedIn ? '' : 'none'}">
                     <div class="d-flex gap-1 justify-content-center">
                         <button class="btn btn-warning btn-sm text-dark fw-bold" onclick="openEditModal(${row.ID_Docin})">✏️ แก้ไข</button>
@@ -336,22 +342,77 @@
         });
     }
 
-    // ฟังก์ชันลบที่ปรับปรุงให้แสดง Error ชัดเจนขึ้นเพื่อ Debug
+    // ฟังก์ชันจัดการฟอร์มแก้ไข
+    function openEditModal(id) {
+        const row = currentData.find(r => r.ID_Docin === id);
+        if(!row) return;
+
+        document.getElementById('edit_id').value = row.ID_Docin;
+        document.getElementById('edit_numdoc').value = row.NumDoc || '';
+        document.getElementById('edit_year').value = row.Year || '';
+        document.getElementById('edit_title').value = row.Title || '';
+        document.getElementById('edit_doc_in_date').value = row.Doc_In_Date || '';
+        document.getElementById('edit_dateofdoc').value = row.DateOfDoc || '';
+        document.getElementById('edit_type').value = row.Type_ID || '';
+        document.getElementById('edit_status').value = row.Status_ID || '';
+        document.getElementById('edit_from').value = row.From_ID || '';
+        document.getElementById('edit_to').value = row.To_ID || '';
+        document.getElementById('edit_detail').value = row.Detail || '';
+
+        if(!editModal) editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        editModal.show();
+    }
+
+    async function saveEdit() {
+        const id = document.getElementById('edit_id').value;
+        const payload = {
+            NumDoc: document.getElementById('edit_numdoc').value,
+            Year: document.getElementById('edit_year').value,
+            Title: document.getElementById('edit_title').value,
+            Doc_In_Date: document.getElementById('edit_doc_in_date').value || null,
+            DateOfDoc: document.getElementById('edit_dateofdoc').value || null,
+            Type_ID: document.getElementById('edit_type').value || null,
+            Status_ID: document.getElementById('edit_status').value || null,
+            From_ID: document.getElementById('edit_from').value || null,
+            To_ID: document.getElementById('edit_to').value || null,
+            Detail: document.getElementById('edit_detail').value
+        };
+
+        const { error } = await supabaseClient
+            .from('Doc_Comein')
+            .update(payload)
+            .eq('ID_Docin', id);
+
+        if (error) {
+            alert('เกิดข้อผิดพลาด: ' + error.message);
+        } else {
+            alert('✅ บันทึกข้อมูลสำเร็จ!');
+            editModal.hide(); 
+            // รีโหลดข้อมูลโดยจำค่าการค้นหาเดิมไว้ด้วย
+            loadData(
+                document.getElementById('search_num').value, 
+                document.getElementById('search_title').value, 
+                document.getElementById('search_status').value
+            );
+        }
+    }
+
+    // ฟังก์ชันลบข้อมูล
     async function deleteDoc(id) {
         if(confirm('🚨 คุณต้องการลบหนังสือฉบับนี้ใช่หรือไม่?')) {
             try {
-                // 1. ลบจากตารางรองก่อน
                 await supabaseClient.from('Responsible_Person').delete().eq('ID_Docin', id);
-                
-                // 2. ลบตารางหลัก
                 const { error } = await supabaseClient.from('Doc_Comein').delete().eq('ID_Docin', id);
                 
-                if (error) {
-                    throw error;
-                } else {
-                    alert('🗑️ ลบข้อมูลสำเร็จ!');
-                    loadData();
-                }
+                if (error) throw error;
+                alert('🗑️ ลบข้อมูลสำเร็จ!');
+                
+                // รีโหลดข้อมูลโดยจำค่าการค้นหาเดิมไว้
+                loadData(
+                    document.getElementById('search_num').value, 
+                    document.getElementById('search_title').value, 
+                    document.getElementById('search_status').value
+                );
             } catch (err) {
                 console.error(err);
                 alert('ไม่สามารถลบได้: ' + (err.message || 'โปรดตรวจสอบสิทธิ์ RLS ใน Supabase'));
@@ -359,15 +420,32 @@
         }
     }
 
-    // ฟังก์ชันอื่นๆ (saveEdit, resetSearch) ยังคงเดิมจากโค้ดก่อนหน้า...
-    // (อย่าลืมใส่ฟังก์ชัน saveEdit และ openEditModal กลับมาด้วยนะครับ)
+    // -----------------------------------------------------
+    // ส่วนนี้คือระบบค้นหาที่ทำงานเชื่อมกับปุ่ม "ค้นหา" และ "ล้างค่า"
+    // -----------------------------------------------------
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        const sNum = document.getElementById('search_num').value;
+        const sTitle = document.getElementById('search_title').value;
+        const sStatus = document.getElementById('search_status').value;
+        loadData(sNum, sTitle, sStatus);
+    });
 
+    function resetSearch() {
+        document.getElementById('search_num').value = '';
+        document.getElementById('search_title').value = '';
+        document.getElementById('search_status').value = '';
+        loadData(); 
+    }
+
+    // ฟังก์ชันเริ่มต้นการทำงานของหน้าเว็บ
     async function init() {
-        await checkAuth(); // เช็กสถานะก่อน
+        await checkAuth(); 
         await loadDropdowns(); 
         await loadData();
     }
 
+    // รัน!
     init();
 </script>
 
