@@ -142,20 +142,15 @@ async function loadData() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '<tr><td colspan="14">กำลังโหลดข้อมูล...</td></tr>';
 
-        // 1. ดึงข้อมูลและ Join ตาราง
+        // 1. ดึงข้อมูลและ Join ตาราง (ลบคอมเมนต์ด้านใน select ออกแล้ว)
         const { data, error } = await supabaseClient
             .from('Doc_Comein')
             .select(`
                 *,
                 Type:Type_ID (Type_Name),
                 Doc_Status:Status_ID (Status_Name),
-                
-                /* ดึงชื่อจากตาราง From สำหรับช่อง "จาก" */
                 FromData:From!From_ID (From_Name),
-                
-                /* ดึงชื่อจากตาราง From สำหรับช่อง "ถึง" (ใช้ !To_ID เพื่อระบุจุดเชื่อม) */
                 ToData:From!To_ID (From_Name),
-                
                 Responsible_Person(
                     Person(
                         Name
