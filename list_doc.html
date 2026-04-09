@@ -132,17 +132,18 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    const supabaseUrl = 'ใส่_URL_ของคุณตรงนี้';
-    const supabaseKey = 'ใส่_ANON_KEY_ของคุณตรงนี้';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    // 1. ใส่ URL และ Key ของจริงลงไป
+    const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // ฟังก์ชันดึงข้อมูลจาก Supabase
+    // 2. ฟังก์ชันดึงข้อมูลจาก Supabase
     async function loadData() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '<tr><td colspan="14">กำลังโหลดข้อมูล...</td></tr>';
 
-        // ดึงข้อมูลพร้อมเชื่อมตาราง (Join) แบบของ Supabase
-        const { data, error } = await supabase
+        // ใช้ supabaseClient ที่เรามี Key ของจริงในการดึงข้อมูล
+        const { data, error } = await supabaseClient
             .from('Doc_Comein')
             .select(`
                 *,
@@ -157,7 +158,7 @@
             return;
         }
 
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
             tbody.innerHTML = '<tr><td colspan="14">ไม่พบข้อมูล</td></tr>';
             return;
         }
@@ -189,15 +190,9 @@
 
     // เรียกใช้งานฟังก์ชันตอนเปิดหน้าเว็บ
     loadData();
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    </script>
-
-    <script src="menu.js"></script>
 </script>
+
+<script src="menu.js"></script>
+
 </body>
 </html>
