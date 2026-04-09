@@ -142,7 +142,6 @@ async function loadData() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '<tr><td colspan="14">กำลังโหลดข้อมูล...</td></tr>';
 
-        // เปลี่ยนหลัง ! ให้เป็นชื่อ Constraint Name แบบเป๊ะๆ
         const { data, error } = await supabaseClient
             .from('Doc_Comein')
             .select(`
@@ -155,7 +154,8 @@ async function loadData() {
                     Person(Name)
                 )
             `)
-            .order('ID_Docin', { ascending: false });
+            // เปลี่ยนตรงนี้! ตั้งค่า ascending ให้เป็น true เพื่อเรียงจากน้อยไปมาก (เก่าไปใหม่)
+            .order('ID_Docin', { ascending: true }); 
 
         if (error) {
             tbody.innerHTML = `<tr><td colspan="14" class="text-danger">เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
@@ -196,16 +196,11 @@ async function loadData() {
                 <td>${row.NumDoc || '-'}</td>
                 <td>${row.Year || '-'}</td>
                 <td>${row.DateOfDoc ? new Date(row.DateOfDoc).toLocaleDateString('th-TH') : '-'}</td>
-                
                 <td>${row.FromData ? row.FromData.From_Name : '-'}</td>
-                
                 <td class="text-success fw-bold">${row.ToData ? row.ToData.From_Name : '-'}</td> 
-                
                 <td>${row.Title || '-'}</td>
                 <td>${row.Detail || '-'}</td>
-                
                 <td class="text-primary fw-bold">${responsibleNames || '-'}</td> 
-                
                 <td>${row.Date_Done ? new Date(row.Date_Done).toLocaleDateString('th-TH') : '-'}</td>
                 <td>${row.Doc_Status ? row.Doc_Status.Status_Name : '-'}</td>
                 <td>${totalDays}</td>
