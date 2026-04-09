@@ -60,41 +60,40 @@
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    btn.innerHTML = 'กำลังตรวจสอบ...'; 
-    btn.disabled = true;
-
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    // ลอง Login
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-    });
-
-    if (error) {
-        // ถ้าพลาด ให้บอกเหตุผลจากระบบเลยว่าพลาดเพราะอะไร
-        console.error('Login Error:', error.message);
-        alert('เข้าสู่ระบบไม่สำเร็จ: ' + error.message); 
-        btn.innerHTML = 'เข้าสู่ระบบ'; 
-        btn.disabled = false;
-    } else {
-        console.log('Login Success:', data);
-        alert('ยินดีด้วย! เข้าสู่ระบบสำเร็จ');
-        window.location.href = 'index.html'; 
-    }
-});
-
         
+        // เปลี่ยนชื่อตัวแปรจาก supabase เป็น supabaseClient เพื่อไม่ให้ชื่อชนกัน
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = 'กำลังตรวจสอบ...'; 
+            btn.disabled = true;
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // ใช้ supabaseClient แทน supabase
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                console.error('Login Error:', error.message);
+                alert('เข้าสู่ระบบไม่สำเร็จ: อีเมลหรือรหัสผ่านไม่ถูกต้อง'); 
+                btn.innerHTML = 'เข้าสู่ระบบ'; 
+                btn.disabled = false;
+            } else {
+                console.log('Login Success:', data);
+                alert('ยินดีด้วย! เข้าสู่ระบบสำเร็จ');
+                window.location.href = 'index.html'; 
+            }
+        });
     </script>
 </body>
 </html>
