@@ -142,15 +142,15 @@ async function loadData() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '<tr><td colspan="14">กำลังโหลดข้อมูล...</td></tr>';
 
-        // ใช้ ! ชี้เป้าว่าให้ดึงข้อมูลผ่านคอลัมน์ไหน
+        // เปลี่ยนหลัง ! ให้เป็นชื่อ Constraint Name แบบเป๊ะๆ
         const { data, error } = await supabaseClient
             .from('Doc_Comein')
             .select(`
                 *,
                 Type:Type_ID(Type_Name),
                 Doc_Status:Status_ID(Status_Name),
-                FromData:From!From_ID(From_Name),
-                ToData:From!To_ID(From_Name),
+                FromData:From!Doc_Comein_From_ID_fkey(From_Name),
+                ToData:From!Doc_Comein_To_ID_fkey(From_Name),
                 Responsible_Person(
                     Person(Name)
                 )
@@ -171,7 +171,6 @@ async function loadData() {
         tbody.innerHTML = ''; 
         
         data.forEach((row, index) => {
-            // คำนวณวัน
             let totalDays = '-';
             if (row.Doc_In_Date && row.Date_Done) {
                 const startDate = new Date(row.Doc_In_Date);
@@ -181,7 +180,6 @@ async function loadData() {
                 totalDays = diffDays >= 0 ? diffDays : 0; 
             }
 
-            // จัดการชื่อผู้รับผิดชอบ
             let responsibleNames = '-';
             if (row.Responsible_Person && row.Responsible_Person.length > 0) {
                 responsibleNames = row.Responsible_Person
