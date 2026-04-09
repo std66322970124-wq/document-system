@@ -66,28 +66,35 @@
         const supabaseKey = 'ใส่_ANON_KEY_ของคุณตรงนี้';
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = 'กำลังตรวจสอบ...'; btn.disabled = true;
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = 'กำลังตรวจสอบ...'; 
+    btn.disabled = true;
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
-            // ส่งข้อมูลไปเช็คกับ Supabase Auth
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
+    // ลอง Login
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+    });
 
-            if (error) {
-                alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง!');
-                btn.innerHTML = 'เข้าสู่ระบบ'; btn.disabled = false;
-            } else {
-                alert('เข้าสู่ระบบสำเร็จ!');
-                window.location.href = 'index.html'; // ล็อกอินผ่านแล้วกลับไปหน้าหลัก
-            }
-        });
+    if (error) {
+        // ถ้าพลาด ให้บอกเหตุผลจากระบบเลยว่าพลาดเพราะอะไร
+        console.error('Login Error:', error.message);
+        alert('เข้าสู่ระบบไม่สำเร็จ: ' + error.message); 
+        btn.innerHTML = 'เข้าสู่ระบบ'; 
+        btn.disabled = false;
+    } else {
+        console.log('Login Success:', data);
+        alert('ยินดีด้วย! เข้าสู่ระบบสำเร็จ');
+        window.location.href = 'index.html'; 
+    }
+});
+
+        
     </script>
 </body>
 </html>
