@@ -68,6 +68,18 @@
             transition: all 0.3s;
         }
         .btn-back:hover { background-color: #E53935; color: white; transform: translateY(-2px); }
+
+
+                /* CSS สำหรับเมนูด้านบน */
+        body { padding-top: 80px; }
+        @media all and (min-width: 992px) {
+            .navbar .dropdown-menu { display: none; border-radius: 10px; margin-top: 0; }
+            .navbar .nav-item:hover .dropdown-menu { display: block; animation: fadeUp 0.3s forwards; }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
