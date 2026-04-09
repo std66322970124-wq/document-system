@@ -22,15 +22,30 @@ async function setupNavbarAuth() {
     const userMenu = document.getElementById('userProfileMenu');
     const loginMenu = document.getElementById('loginBtnMenu');
     const displayUsername = document.getElementById('displayUsername');
+    
+    // ดึงตัวแปรเมนูที่เราใส่ ID ไว้เมื่อกี้
+    const menuAddIn = document.getElementById('menu-add-in');
+    const menuAddOut = document.getElementById('menu-add-out');
 
     if (session) {
+        // ---- กรณีล็อกอินแล้ว ----
         userMenu.style.setProperty('display', 'flex', 'important');
         loginMenu.style.display = 'none';
         const email = session.user.email;
         displayUsername.innerText = email.split('@')[0]; 
+        
+        // สั่งให้โชว์เมนูเพิ่มข้อมูล
+        if(menuAddIn) menuAddIn.style.display = 'block';
+        if(menuAddOut) menuAddOut.style.display = 'block';
+        
     } else {
+        // ---- กรณียังไม่ล็อกอิน ----
         userMenu.style.setProperty('display', 'none', 'important');
         loginMenu.style.display = 'block';
+        
+        // สั่งให้ซ่อนเมนูเพิ่มข้อมูล
+        if(menuAddIn) menuAddIn.style.display = 'none';
+        if(menuAddOut) menuAddOut.style.display = 'none';
     }
 }
 
