@@ -247,12 +247,25 @@
 </div>
 
 
+
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     // 1. เชื่อมต่อ Supabase
     const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // ดักจับคนยังไม่ล็อกอิน
+    async function checkLogin() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            alert('คุณต้องเข้าสู่ระบบก่อน จึงจะสามารถเพิ่มข้อมูลได้ครับ');
+            window.location.href = 'login.html'; // เตะกลับไปหน้าล็อกอิน
+        }
+    }
+    // เรียกใช้งานฟังก์ชันเช็คทันทีที่เปิดหน้าเว็บ
+    checkLogin();
 
     // 2. ฟังก์ชันบันทึกข้อมูลเมื่อกดปุ่ม
     document.getElementById('saveForm').addEventListener('submit', async function(e) {
