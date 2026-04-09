@@ -35,13 +35,23 @@
             transition: all 0.3s;
         }
         .btn-login:hover { background-color: #0284c7; transform: translateY(-2px); }
+        
+        body { padding-top: 80px; }
+        @media all and (min-width: 992px) {
+            .navbar .dropdown-menu { display: none; border-radius: 10px; margin-top: 0; }
+            .navbar .nav-item:hover .dropdown-menu { display: block; animation: fadeUp 0.3s forwards; }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
     <div class="background-overlay"></div>
     <div class="gradient-overlay"></div>
-
+<div id="menu-container"></div>
     <div class="login-card">
         <h2 class="text-center fw-bold mb-4">เข้าสู่ระบบ</h2>
         <form id="loginForm">
@@ -94,6 +104,8 @@
                 window.location.href = 'index.html'; 
             }
         });
+        <script src="menu.js"></script>
     </script>
+   
 </body>
 </html>
