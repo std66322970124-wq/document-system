@@ -138,23 +138,29 @@
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     // 2. ฟังก์ชันดึงข้อมูลจาก Supabase
-    async function loadData() {
+async function loadData() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '<tr><td colspan="14">กำลังโหลดข้อมูล...</td></tr>';
 
-        // ใช้ supabaseClient ที่เรามี Key ของจริงในการดึงข้อมูล
+        // 1. ดึงข้อมูลและ Join ตาราง
         const { data, error } = await supabaseClient
             .from('Doc_Comein')
             .select(`
                 *,
                 Type:Type_ID (Type_Name),
                 Doc_Status:Status_ID (Status_Name),
-                From:From_ID (From_Name)
+                From:From_ID (From_Name),
+                Responsible_Person(
+                    Person(
+                        Name
+                    )
+                )
             `)
             .order('ID_Docin', { ascending: false });
 
         if (error) {
             tbody.innerHTML = `<tr><td colspan="14" class="text-danger">เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
+            console.error("Supabase Error:", error);
             return;
         }
 
@@ -163,10 +169,29 @@
             return;
         }
 
-        tbody.innerHTML = ''; // ล้างข้อความกำลังโหลด
+        tbody.innerHTML = ''; 
         
-        // วนลูปสร้างแถวตาราง
         data.forEach((row, index) => {
+            // คำนวณวันดำเนินการ
+            let totalDays = '-';
+            if (row.Doc_In_Date && row.Date_Done) {
+                const startDate = new Date(row.Doc_In_Date);
+                const endDate = new Date(row.Date_Done);
+                const diffTime = endDate - startDate;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                totalDays = diffDays >= 0 ? diffDays : 0; 
+            }
+
+            // จัดการข้อมูลชื่อผู้รับผิดชอบ (เผื่อมีหลายคน)
+            let responsibleNames = '-';
+            if (row.Responsible_Person && row.Responsible_Person.length > 0) {
+                // ดึงเฉพาะชื่อออกมา แล้วเอามาต่อกันด้วยลูกน้ำ
+                responsibleNames = row.Responsible_Person
+                    .map(rp => rp.Person ? rp.Person.Name : '')
+                    .filter(name => name !== '') // กรองค่าว่างทิ้ง
+                    .join(', ');
+            }
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${index + 1}</td>
@@ -176,13 +201,17 @@
                 <td>${row.Year || '-'}</td>
                 <td>${row.DateOfDoc ? new Date(row.DateOfDoc).toLocaleDateString('th-TH') : '-'}</td>
                 <td>${row.From ? row.From.From_Name : '-'}</td>
-                <td>-</td>
+                
+                <td>${row.To_ID || '-'}</td> 
+                
                 <td>${row.Title || '-'}</td>
                 <td>${row.Detail || '-'}</td>
-                <td>-</td>
+                
+                <td class="text-primary fw-bold">${responsibleNames || '-'}</td> 
+                
                 <td>${row.Date_Done ? new Date(row.Date_Done).toLocaleDateString('th-TH') : '-'}</td>
                 <td>${row.Doc_Status ? row.Doc_Status.Status_Name : '-'}</td>
-                <td>-</td>
+                <td>${totalDays}</td>
             `;
             tbody.appendChild(tr);
         });
