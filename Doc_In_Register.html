@@ -261,7 +261,7 @@
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             alert('คุณต้องเข้าสู่ระบบก่อน จึงจะสามารถเพิ่มข้อมูลได้ครับ');
-            window.location.href = 'login.html'; // เตะกลับไปหน้าล็อกอิน
+            window.location.href = 'index.html'; // เตะกลับไปหน้าล็อกอิน
         }
     }
     // เรียกใช้งานฟังก์ชันเช็คทันทีที่เปิดหน้าเว็บ
