@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทะเบียนลงรับหนังสือ | ศูนย์คอมพิวเตอร์</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            min-height: 100vh;
+            position: relative;
+            background-color: #f4f6f9; /* สีพื้นหลังเผื่อโหลดรูปไม่ขึ้น */
+        }
+
+        /* รูปภาพพื้นหลัง (ปรับ Path ให้ตรงกับเครื่องคุณได้เลย เช่น photo/bg.jpg) */
+        .background-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        /* ตัวกรองสีพื้นหลังให้ดูฝ้าๆ เบลอๆ */
+        .gradient-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(3px); /* ทำเบลอเล็กน้อยให้อ่านหนังสือง่าย */
+            z-index: -1;
+        }
+
+        /* หัวข้อระบบ */
+        .system-title {
+            font-size: clamp(2rem, 4vw, 2.8rem); 
+            font-weight: 700;
+            color: #1a1a1a;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* กล่องฟอร์ม */
+        .form-container {
+            background: rgba(255, 255, 255, 0.4);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto 50px auto;
+        }
+
+        /* ปรับแต่ง Label */
+        .col-form-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        /* ปรับแต่ง Input & Select ให้เป็นทรงแคปซูลสีเทา */
+        .form-control, .form-select {
+            border-radius: 50px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); /* เงาด้านใน */
+            text-align: center;
+            padding: 0.6rem 1.5rem;
+            font-weight: 500;
+            color: #333;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #fff;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+            outline: 0;
+        }
+
+        /* ปรับให้ลูกศร Dropdown อยู่ตรงกลางขวา */
+        .form-select {
+            text-align-last: center;
+        }
+
+        /* ปุ่มกด */
+        .btn-custom {
+            border-radius: 50px;
+            padding: 10px 40px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            color: white !important;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-save { background-color: #7ed321; } /* สีเขียว */
+        .btn-back { background-color: #ff4d4f; } /* สีแดง */
+
+    </style>
+</head>
+<body>
+
+    <div class="background-overlay"></div>
+    <div class="gradient-overlay"></div>
+
+    <div class="container">
+        <h1 class="text-center system-title">ทะเบียนลงรับหนังสือ</h1>
+
+        <div class="form-container">
+            <form id="saveForm">
+                
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">วันเดือนปีที่ลงรับหนังสือ</label>
+                    <div class="col-sm-6">
+                        <input type="datetime-local" class="form-control" name="Doc_In_Date" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">ประเภทหนังสือ</label>
+                    <div class="col-sm-6">
+                        <select class="form-select" name="Type_ID" required>
+                            <option value="1">ภายใน</option>
+                            <option value="2">ภายนอก</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">เลขที่หนังสือ</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" name="NumDoc" value="อว 0626.02/5785" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">พ.ศ.</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" name="Year" value="2569" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">ลงวันที่</label>
+                    <div class="col-sm-6">
+                        <input type="datetime-local" class="form-control" name="DateOfDoc" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">จาก</label>
+                    <div class="col-sm-6">
+                        <select class="form-select" name="From_ID" required>
+                            <option value="1">สำนักงานคณบดี</option>
+                            <option value="2">หน่วยงานอื่นๆ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">ถึง</label>
+                    <div class="col-sm-6">
+                         <select class="form-select" name="To_ID" required>
+                            <option value="1">ผู้อำนวยการสำนัก</option>
+                            <option value="2">แผนกไอที</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">เรื่อง</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" name="Title" value="ขออนุญาตใช้พื้นที่เว็บไซต์" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">รายละเอียด</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" name="Detail" value="ขอพื้นที่เว็บไซต์">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label class="col-sm-4 col-form-label text-sm-end pt-2">ผู้รับผิดชอบ</label>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center mb-2">
+                            <label class="me-2 fw-semibold">จำนวน</label>
+                            <select class="form-select w-auto px-4 me-3" name="Total">
+                                <option value="1">1</option>
+                                <option value="2" selected>2</option>
+                            </select>
+                            
+                            <label class="me-2 fw-semibold">รายชื่อ</label>
+                            <select class="form-select flex-grow-1" name="Per_ID[]">
+                                <option value="1">คุณทิวัตถ์</option> 
+                                <option value="2">คุณมาลัย</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <select class="form-select w-75" name="Per_ID[]">
+                                <option value="">-- ไม่เลือก --</option>
+                                <option value="1">คุณทิวัตถ์</option>
+                                <option value="2" selected>คุณมาลัย</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center mt-4">
+                    <label class="col-sm-4 col-form-label text-sm-end">วันที่ดำเนินการแล้วเสร็จ</label>
+                    <div class="col-sm-6">
+                        <input type="datetime-local" class="form-control" name="Date_Done">
+                    </div>
+                </div>
+
+                <div class="row mb-4 align-items-center">
+                    <label class="col-sm-4 col-form-label text-sm-end">สถานะ</label>
+                    <div class="col-sm-6">
+                        <select class="form-select" name="Status_ID">
+                            <option value="1">สำเร็จ</option>
+                            <option value="2">รอดำเนินการ</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mt-5">
+                    <div class="col-12 d-flex justify-content-center gap-4">
+                        <button type="submit" class="btn btn-custom btn-save">บันทึก</button>
+                        <a href="Doc_In.html" class="btn btn-custom btn-back">กลับหน้าแรก</a>
+                    </div>
+                </div>
+
+            </form>
+</div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // 1. เชื่อมต่อ Supabase
+    const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 2. ฟังก์ชันบันทึกข้อมูลเมื่อกดปุ่ม
+    document.getElementById('saveForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); // ป้องกันไม่ให้หน้าเว็บรีเฟรช
+
+        // สร้างปุ่มโหลด (เผื่อเน็ตช้า)
+        const submitBtn = document.querySelector('.btn-save');
+        submitBtn.innerHTML = 'กำลังบันทึก...';
+        submitBtn.disabled = true;
+
+        // ดึงข้อมูลจากฟอร์ม
+        const formData = new FormData(this);
+        const docData = {
+            Doc_In_Date: formData.get('Doc_In_Date'),
+            Type_ID: formData.get('Type_ID'),
+            NumDoc: formData.get('NumDoc'),
+            Year: formData.get('Year'),
+            DateOfDoc: formData.get('DateOfDoc'),
+            From_ID: formData.get('From_ID'),
+            To_ID: formData.get('To_ID'),
+            Title: formData.get('Title'),
+            Detail: formData.get('Detail'),
+            Total: formData.get('Total'),
+            Status_ID: formData.get('Status_ID')
+        };
+
+        if(formData.get('Date_Done')) {
+            docData.Date_Done = formData.get('Date_Done');
+        }
+
+        // ส่งข้อมูลเข้า Supabase
+        const { data, error } = await supabase
+            .from('Doc_Comein')
+            .insert([docData]);
+
+        if (error) {
+            alert('เกิดข้อผิดพลาด: ' + error.message);
+            submitBtn.innerHTML = 'บันทึก';
+            submitBtn.disabled = false;
+        } else {
+            alert('บันทึกข้อมูลสำเร็จ!');
+            window.location.href = 'Doc_In.html'; // กลับหน้าแรก
+        }
+    });
+</script>
+</body>
