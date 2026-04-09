@@ -85,17 +85,18 @@
 <div class="container-fluid px-4">
     <h3 class="header-title">ทะเบียนลงรับหนังสือภายใน ประจำปี 2569 ศูนย์คอมพิวเตอร์ สำนักงานอธิการบดี มหาวิทยาลัยราชภัฏอุบลราชธานี</h3>
 
-    <form method="GET" action="list_doc.php">
+    <form id="searchForm">
         <div class="search-box mx-auto text-center">
             <span class="fw-bold">ค้นหาหนังสือ</span>
-            <input type="text" name="search_num" placeholder="เลขที่หนังสือ" value="<?= htmlspecialchars($search_num) ?>">
-            <input type="text" name="search_title" placeholder="เรื่อง" value="<?= htmlspecialchars($search_title) ?>">
-            <select name="search_status">
+            <input type="text" id="search_num" placeholder="เลขที่หนังสือ">
+            <input type="text" id="search_title" placeholder="เรื่อง">
+            <select id="search_status">
                 <option value="">สถานะ</option>
-                <option value="1" <?= $search_status == '1' ? 'selected' : '' ?>>สำเร็จ</option>
-                <option value="2" <?= $search_status == '2' ? 'selected' : '' ?>>รอดำเนินการ</option>
+                <option value="1">สำเร็จ</option>
+                <option value="2">รอดำเนินการ</option>
             </select>
             <button type="submit" class="btn btn-search">ค้นหา</button>
+            <button type="button" class="btn btn-secondary rounded-pill px-4" onclick="resetSearch()">ล้างค่า</button>
         </div>
     </form>
 
@@ -132,17 +133,17 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // 1. ใส่ URL และ Key ของจริงลงไป
     const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // 2. ฟังก์ชันดึงข้อมูลจาก Supabase
-async function loadData() {
+    // รับค่าพารามิเตอร์เพื่อใช้ค้นหา
+    async function loadData(searchNum = '', searchTitle = '', searchStatus = '') {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '<tr><td colspan="14">กำลังโหลดข้อมูล...</td></tr>';
 
-        const { data, error } = await supabaseClient
+        // 1. สร้างคำสั่งพื้นฐาน
+        let query = supabaseClient
             .from('Doc_Comein')
             .select(`
                 *,
@@ -153,9 +154,21 @@ async function loadData() {
                 Responsible_Person(
                     Person(Name)
                 )
-            `)
-            // เปลี่ยนตรงนี้! ตั้งค่า ascending ให้เป็น true เพื่อเรียงจากน้อยไปมาก (เก่าไปใหม่)
-            .order('ID_Docin', { ascending: true }); 
+            `);
+
+        // 2. เช็คว่ามีการพิมพ์ค้นหาไหม ถ้ามีให้เพิ่มเงื่อนไข Filter
+        if (searchNum) {
+            query = query.ilike('NumDoc', `%${searchNum}%`); // ilike คือหาคำที่มีบางส่วนตรงกัน
+        }
+        if (searchTitle) {
+            query = query.ilike('Title', `%${searchTitle}%`);
+        }
+        if (searchStatus) {
+            query = query.eq('Status_ID', searchStatus); // eq คือค่าต้องตรงกันเป๊ะๆ
+        }
+
+        // 3. สั่งดึงข้อมูลพร้อมจัดเรียง
+        const { data, error } = await query.order('ID_Docin', { ascending: true });
 
         if (error) {
             tbody.innerHTML = `<tr><td colspan="14" class="text-danger">เกิดข้อผิดพลาด: ${error.message}</td></tr>`;
@@ -164,7 +177,7 @@ async function loadData() {
         }
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="14">ไม่พบข้อมูล</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="14" class="text-center text-danger fw-bold">ไม่พบข้อมูลที่ค้นหา</td></tr>';
             return;
         }
 
@@ -209,7 +222,27 @@ async function loadData() {
         });
     }
 
-    // เรียกใช้งานฟังก์ชันตอนเปิดหน้าเว็บ
+    // ฟังก์ชันจัดการตอนกดปุ่มค้นหา
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // ป้องกันไม่ให้หน้าเว็บรีเฟรช
+        
+        const sNum = document.getElementById('search_num').value;
+        const sTitle = document.getElementById('search_title').value;
+        const sStatus = document.getElementById('search_status').value;
+        
+        // เรียกฟังก์ชันดึงข้อมูลแบบใส่เงื่อนไข
+        loadData(sNum, sTitle, sStatus);
+    });
+
+    // ฟังก์ชันสำหรับล้างค่าการค้นหา
+    function resetSearch() {
+        document.getElementById('search_num').value = '';
+        document.getElementById('search_title').value = '';
+        document.getElementById('search_status').value = '';
+        loadData(); // โหลดข้อมูลทั้งหมดใหม่
+    }
+
+    // เรียกใช้งานครั้งแรกตอนเปิดหน้าเว็บ
     loadData();
 </script>
 
