@@ -142,19 +142,17 @@ async function loadData() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '<tr><td colspan="14">กำลังโหลดข้อมูล...</td></tr>';
 
-        // 1. ดึงข้อมูลและ Join ตาราง (ลบคอมเมนต์ด้านใน select ออกแล้ว)
+        // ใช้ ! ชี้เป้าว่าให้ดึงข้อมูลผ่านคอลัมน์ไหน
         const { data, error } = await supabaseClient
             .from('Doc_Comein')
             .select(`
                 *,
-                Type:Type_ID (Type_Name),
-                Doc_Status:Status_ID (Status_Name),
-                FromData:From!From_ID (From_Name),
-                ToData:From!To_ID (From_Name),
+                Type:Type_ID(Type_Name),
+                Doc_Status:Status_ID(Status_Name),
+                FromData:From!From_ID(From_Name),
+                ToData:From!To_ID(From_Name),
                 Responsible_Person(
-                    Person(
-                        Name
-                    )
+                    Person(Name)
                 )
             `)
             .order('ID_Docin', { ascending: false });
@@ -173,7 +171,7 @@ async function loadData() {
         tbody.innerHTML = ''; 
         
         data.forEach((row, index) => {
-            // คำนวณวันดำเนินการ
+            // คำนวณวัน
             let totalDays = '-';
             if (row.Doc_In_Date && row.Date_Done) {
                 const startDate = new Date(row.Doc_In_Date);
@@ -183,7 +181,7 @@ async function loadData() {
                 totalDays = diffDays >= 0 ? diffDays : 0; 
             }
 
-            // จัดการข้อมูลชื่อผู้รับผิดชอบ (เผื่อมีหลายคน)
+            // จัดการชื่อผู้รับผิดชอบ
             let responsibleNames = '-';
             if (row.Responsible_Person && row.Responsible_Person.length > 0) {
                 responsibleNames = row.Responsible_Person
@@ -203,7 +201,7 @@ async function loadData() {
                 
                 <td>${row.FromData ? row.FromData.From_Name : '-'}</td>
                 
-                <td class="text-success fw-bold">${row.ToData ? row.ToData.From_Name : (row.To_ID || '-')}</td> 
+                <td class="text-success fw-bold">${row.ToData ? row.ToData.From_Name : '-'}</td> 
                 
                 <td>${row.Title || '-'}</td>
                 <td>${row.Detail || '-'}</td>
