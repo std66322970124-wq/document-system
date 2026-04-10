@@ -130,9 +130,9 @@
                     </div>
                 </div>
 
-                <div class="row mb-3 align-items-center">
+              <div class="row mb-3 align-items-center">
                     <label class="col-sm-4 col-form-label text-sm-end">จาก</label>
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
                         <select class="form-select" name="From_ID" required>
                             <option value="1">คณะเกษตรศาสตร์</option>
                             <option value="2">คณะครุศาสตร์</option>
@@ -144,16 +144,22 @@
                             <option value="8">คณะนิติศาสตร์</option>
                         </select>
                     </div>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" name="Remark_From" placeholder="หมายเหตุ (ถ้ามี)">
+                    </div>
                 </div>
 
                 <div class="row mb-3 align-items-center">
                     <label class="col-sm-4 col-form-label text-sm-end">ถึง</label>
-                    <div class="col-sm-6">
+                    <div class="col-sm-4">
                          <select class="form-select" name="To_ID" required>
                             <option value="1">ผู้อำนวยการศูนย์คอมพิวเตอร์</option>
                             <option value="2">ผู้อำนวยการสำนักงานอธิการบดี</option>
-                             <option value="3">อธิการบดีมหาวิทยาลัยราชภัฏอุบลราชธานี</option>
+                            <option value="3">อธิการบดีมหาวิทยาลัยราชภัฏอุบลราชธานี</option>
                         </select>
+                    </div>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" name="Remark_To" placeholder="หมายเหตุ (ถ้ามี)">
                     </div>
                 </div>
 
@@ -282,7 +288,9 @@
                     Year: formData.get('Year'),
                     DateOfDoc: formData.get('DateOfDoc'),
                     From_ID: formData.get('From_ID'),
+                    Remark_From: formData.get('Remark_From'), // <-- เพิ่มบรรทัดนี้
                     To_ID: formData.get('To_ID'),
+                    Remark_To: formData.get('Remark_To'),     // <-- เพิ่มบรรทัดนี้
                     Title: formData.get('Title'),
                     Detail: formData.get('Detail'),
                     Total: formData.get('Total'),
