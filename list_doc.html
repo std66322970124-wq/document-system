@@ -372,8 +372,8 @@
                 <td>${row.NumDoc || '-'}</td>
                 <td>${row.Year || '-'}</td>
                 <td>${row.DateOfDoc ? new Date(row.DateOfDoc).toLocaleDateString('th-TH') : '-'}</td>
-                <td>${row.FromData ? row.FromData.From_Name : '-'}</td>
-                <td class="text-success fw-bold">${row.ToData ? row.ToData.From_Name : '-'}</td> 
+                <td>${row.FromData ? row.FromData.From_Name : '-'}${row.Remark_From ? ` (${row.Remark_From})` : ''}</td>
+                <td class="text-success fw-bold">${row.ToData ? row.ToData.From_Name : '-'}${row.Remark_To ? ` (${row.Remark_To})` : ''}</td>
                 <td>${row.Title || '-'}</td>
                 <td>${row.Detail || '-'}</td>
                 <td class="text-primary fw-bold">${responsibleNames || '-'}</td> 
@@ -524,8 +524,8 @@
                 'เลขที่หนังสือ': row.NumDoc || '-',
                 'พ.ศ.': row.Year || '-',
                 'ลงวันที่': row.DateOfDoc ? new Date(row.DateOfDoc).toLocaleDateString('th-TH') : '-',
-                'จาก': row.FromData ? row.FromData.From_Name : '-',
-                'ถึง': row.ToData ? row.ToData.From_Name : '-',
+                'จาก': (row.FromData ? row.FromData.From_Name : '-') + (row.Remark_From ? ` (${row.Remark_From})` : ''),
+                'ถึง': (row.ToData ? row.ToData.From_Name : '-') + (row.Remark_To ? ` (${row.Remark_To})` : ''),
                 'เรื่อง': row.Title || '-',
                 'รายละเอียด': row.Detail || '-',
                 'ผู้รับผิดชอบ': responsibleNames,
