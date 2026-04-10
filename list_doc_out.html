@@ -343,7 +343,7 @@
                 <td>${row.NumDoc || '-'}</td>
                 <td>${row.Year || '-'}</td>
                 <td>${row.Title || '-'}</td>
-                <td>${row.From ? row.From.From_Name : '-'}</td> 
+                <td>${row.From ? row.From.From_Name : '-'}${row.Remark ? ` (${row.Remark})` : ''}</td> 
                 <td class="text-primary fw-bold">${row.Person ? row.Person.Name : '-'}</td> 
                 <td style="display: ${isLoggedIn ? '' : 'none'}">
                     <div class="d-flex gap-1 justify-content-center">
