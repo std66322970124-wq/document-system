@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการข้อมูลระบบ (Admin) | ศูนย์คอมพิวเตอร์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png'), linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            background-color: #cfdef3;
+            background-attachment: fixed;
+            background-size: cover;
+            padding-top: 80px;
+        }
+        .header-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: #1a1a1a;
+        }
+        .admin-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .table-custom thead th {
+            background-color: #f48a3d;
+            color: black;
+            text-align: center;
+        }
+        .table-custom tbody td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        .btn-add { background-color: #8BC34A; color: white; font-weight: bold; }
+        .btn-add:hover { background-color: #7CB342; color: white; }
+    </style>
+</head>
+<body>
+<div id="menu-container"></div>
+<div class="container mb-5">
+    <h2 class="header-title">⚙️ จัดการข้อมูลระบบ (สำหรับผู้ดูแลระบบ)</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <h4 class="fw-bold mb-3 text-primary">🏢 จัดการหน่วยงาน (จาก/ถึง)</h4>
+                
+                <form id="formAddDept" class="d-flex gap-2 mb-3">
+                    <input type="text" id="newDeptName" class="form-control rounded-pill" placeholder="ชื่อหน่วยงานใหม่..." required>
+                    <button type="submit" class="btn btn-add rounded-pill px-4">เพิ่ม</button>
+                </form>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover table-custom">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ชื่อหน่วยงาน</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deptTableBody">
+                            <tr><td colspan="3">กำลังโหลด...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="admin-card">
+                <h4 class="fw-bold mb-3 text-success">👤 จัดการผู้รับผิดชอบ / ผู้ทำบันทึก</h4>
+                
+                <form id="formAddPerson" class="d-flex gap-2 mb-3">
+                    <input type="text" id="newPersonName" class="form-control rounded-pill" placeholder="ชื่อ-นามสกุล..." required>
+                    <button type="submit" class="btn btn-add rounded-pill px-4">เพิ่ม</button>
+                </form>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover table-custom">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ชื่อ-นามสกุล</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="personTableBody">
+                            <tr><td colspan="3">กำลังโหลด...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const supabaseUrl = 'https://rfvageoqxgrncdaborht.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 1. ตรวจสอบสิทธิ์ Admin
+    async function checkAdmin() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            alert('คุณต้องเข้าสู่ระบบก่อน');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        // ดึงข้อมูลผู้ใช้จากตาราง Person เพื่อเช็ก Permission
+        const { data: userData, error } = await supabaseClient
+            .from('Person')
+            .select('Permission')
+            .eq('auth_user_id', session.user.id)
+            .single();
+
+        if (error || !userData || userData.Permission !== 'admin') {
+            alert('⛔ คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (เฉพาะ Admin เท่านั้น)');
+            window.location.href = 'dashboard.html';
+        }
+    }
+
+    // ==========================================
+    // ส่วนที่ 1: จัดการหน่วยงาน (Table: From)
+    // ==========================================
+    async function loadDepartments() {
+        const { data, error } = await supabaseClient.from('From').select('*').order('From_ID', { ascending: false });
+        const tbody = document.getElementById('deptTableBody');
+        tbody.innerHTML = '';
+        
+        if (data) {
+            data.forEach(dept => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${dept.From_ID}</td>
+                        <td class="text-start">${dept.From_Name}</td>
+                        <td><button class="btn btn-danger btn-sm rounded-pill" onclick="deleteDept(${dept.From_ID})">ลบ</button></td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    document.getElementById('formAddDept').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('newDeptName').value;
+        const { error } = await supabaseClient.from('From').insert([{ From_Name: name }]);
+        
+        if (error) alert('เกิดข้อผิดพลาด: ' + error.message);
+        else {
+            document.getElementById('newDeptName').value = '';
+            loadDepartments();
+        }
+    });
+
+    async function deleteDept(id) {
+        if(confirm('ระวัง! การลบหน่วยงานอาจกระทบกับข้อมูลหนังสือที่เคยบันทึกไว้ ยืนยันการลบ?')) {
+            const { error } = await supabaseClient.from('From').delete().eq('From_ID', id);
+            if (error) alert('ไม่สามารถลบได้ เนื่องจากข้อมูลนี้ถูกใช้งานอยู่');
+            else loadDepartments();
+        }
+    }
+
+    // ==========================================
+    // ส่วนที่ 2: จัดการผู้รับผิดชอบ (Table: Person)
+    // ==========================================
+    async function loadPersons() {
+        const { data, error } = await supabaseClient.from('Person').select('*').order('Per_ID', { ascending: false });
+        const tbody = document.getElementById('personTableBody');
+        tbody.innerHTML = '';
+        
+        if (data) {
+            data.forEach(person => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${person.Per_ID}</td>
+                        <td class="text-start">${person.Name}</td>
+                        <td><button class="btn btn-danger btn-sm rounded-pill" onclick="deletePerson(${person.Per_ID})">ลบ</button></td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    document.getElementById('formAddPerson').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('newPersonName').value;
+        
+        // กำหนด Permission เริ่มต้นเป็น 'user' และ Status เป็น '1'
+        const { error } = await supabaseClient.from('Person').insert([{ 
+            Name: name, 
+            Permission: 'user',
+            Status: '1'
+        }]);
+        
+        if (error) alert('เกิดข้อผิดพลาด: ' + error.message);
+        else {
+            document.getElementById('newPersonName').value = '';
+            loadPersons();
+        }
+    });
+
+    async function deletePerson(id) {
+        if(confirm('ยืนยันการลบรายชื่อนี้ใช่หรือไม่?')) {
+            const { error } = await supabaseClient.from('Person').delete().eq('Per_ID', id);
+            if (error) alert('ไม่สามารถลบได้ เนื่องจากชื่อนี้เชื่อมโยงกับเอกสารอยู่');
+            else loadPersons();
+        }
+    }
+
+    // เริ่มทำงานเมื่อเปิดหน้า
+    async function init() {
+        await checkAdmin();
+        loadDepartments();
+        loadPersons();
+    }
+    
+    init();
+</script>
+<script src="menu.js"></script>
+</body>
+</html>
