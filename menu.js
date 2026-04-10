@@ -14,7 +14,7 @@ async function loadMenu() {
     }
 }
 
-// 2. ฟังก์ชันตรวจสอบการล็อกอิน
+// 2. ฟังก์ชันตรวจสอบการล็อกอินและสิทธิ์
 async function setupNavbarAuth() {
     const client = typeof supabaseClient !== 'undefined' ? supabaseClient : supabase;
     const { data: { session } } = await client.auth.getSession();
@@ -23,9 +23,10 @@ async function setupNavbarAuth() {
     const loginMenu = document.getElementById('loginBtnMenu');
     const displayUsername = document.getElementById('displayUsername');
     
-    // ดึงตัวแปรเมนูที่เราใส่ ID ไว้เมื่อกี้
+    // ดึงตัวแปรเมนูที่เราใส่ ID ไว้
     const menuAddIn = document.getElementById('menu-add-in');
     const menuAddOut = document.getElementById('menu-add-out');
+    const menuAdmin = document.getElementById('menu-admin'); // ตัวแปรสำหรับเมนูแอดมิน
 
     if (session) {
         // ---- กรณีล็อกอินแล้ว ----
@@ -37,15 +38,36 @@ async function setupNavbarAuth() {
         // สั่งให้โชว์เมนูเพิ่มข้อมูล
         if(menuAddIn) menuAddIn.style.display = 'block';
         if(menuAddOut) menuAddOut.style.display = 'block';
+
+        // --- เพิ่มการตรวจสอบสิทธิ์ Admin ---
+        try {
+            // ไปเช็กในตาราง Person ว่า user นี้มี Permission เป็น admin หรือไม่
+            const { data: userData } = await client
+                .from('Person')
+                .select('Permission')
+                .eq('auth_user_id', session.user.id)
+                .single();
+                
+            if (userData && userData.Permission === 'admin') {
+                if(menuAdmin) menuAdmin.style.display = 'block'; // ถ้าเป็นแอดมิน ให้โชว์ปุ่ม
+            } else {
+                if(menuAdmin) menuAdmin.style.display = 'none'; // ถ้าไม่ใช่ ให้ซ่อนไว้
+            }
+        } catch(err) {
+            console.error('Error checking admin permission:', err);
+            if(menuAdmin) menuAdmin.style.display = 'none';
+        }
+        // ----------------------------------
         
     } else {
         // ---- กรณียังไม่ล็อกอิน ----
         userMenu.style.setProperty('display', 'none', 'important');
         loginMenu.style.display = 'block';
         
-        // สั่งให้ซ่อนเมนูเพิ่มข้อมูล
+        // สั่งให้ซ่อนเมนูทั้งหมด
         if(menuAddIn) menuAddIn.style.display = 'none';
         if(menuAddOut) menuAddOut.style.display = 'none';
+        if(menuAdmin) menuAdmin.style.display = 'none';
     }
 }
 
@@ -58,5 +80,5 @@ async function logout() {
     }
 }
 
-// สั่งให้ระบบดึงเมนูทันทีที่โหลดหน้าเว็บเสร็จ
-document.addEventListener('DOMContentLoaded', loadMenu);
+// โหลดเมนูทันทีเมื่อเรียกใช้ไฟล์นี้
+loadMenu();
