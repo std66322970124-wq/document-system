@@ -173,17 +173,12 @@
                     <div class="col-sm-6">
                         <div class="d-flex align-items-center mb-3">
                             <label class="me-2 fw-semibold">จำนวน</label>
-                            <select class="form-select w-auto px-4" name="Total" id="totalPersons">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                            </select>
-                            <label class="ms-3 fw-semibold">คน</label>
+                            <input type="number" class="form-control w-25 text-center px-2" name="Total" id="totalPersons" min="1" value="1" required>
+                            <label class="ms-2 fw-semibold">คน</label>
+                            <button type="button" class="btn btn-secondary btn-sm rounded-pill ms-3 px-3 fw-bold" id="btnGenPersons">ตกลง</button>
                         </div>
                         
                         <div id="personsContainer"></div>
-
                     </div>
                 </div>
 
@@ -224,6 +219,8 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmFnZW9xeGdybmNkYWJvcmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MTI0OTgsImV4cCI6MjA5MTI4ODQ5OH0.Wf6cpX1jhK2nuhpHON101wUonr1kZDf6uh7IDVE-DmQ';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
+        let personsList = []; // เก็บรายชื่อที่ดึงมาจากฐานข้อมูล
+
         // 2. ดักจับคนยังไม่ล็อกอิน
         async function checkLogin() {
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -234,61 +231,84 @@
         }
         checkLogin();
 
-        // 3. ดึงข้อมูลหน่วยงานจากฐานข้อมูล (ช่อง จาก และ ถึง)
+        // 3. ดึงข้อมูลหน่วยงาน (ตาราง From) และรายชื่อคน (ตาราง Person)
         async function loadDropdowns() {
             try {
-                const { data, error } = await supabaseClient
-                    .from('From')
-                    .select('*')
-                    .order('From_ID', { ascending: true });
+                // ดึง 2 ตารางพร้อมกันเพื่อความรวดเร็ว
+                const [fromRes, personRes] = await Promise.all([
+                    supabaseClient.from('From').select('*').order('From_ID', { ascending: true }),
+                    supabaseClient.from('Person').select('*').order('Per_ID', { ascending: true })
+                ]);
 
-                if (error) throw error;
+                if (fromRes.error) throw fromRes.error;
+                if (personRes.error) throw personRes.error;
 
+                // --- จัดการช่อง "จาก" และ "ถึง" ---
                 const fromSelect = document.getElementById('fromSelect');
                 const toSelect = document.getElementById('toSelect');
 
-                // เคลียร์ค่าเริ่มต้น
                 fromSelect.innerHTML = '<option value="">-- เลือกหน่วยงาน (จาก) --</option>';
                 toSelect.innerHTML = '<option value="">-- เลือกหน่วยงาน (ถึง) --</option>';
 
-                if (data) {
-                    data.forEach(item => {
+                if (fromRes.data) {
+                    fromRes.data.forEach(item => {
                         fromSelect.innerHTML += `<option value="${item.From_ID}">${item.From_Name}</option>`;
                         toSelect.innerHTML += `<option value="${item.From_ID}">${item.From_Name}</option>`;
                     });
                 }
+
+                // --- จัดเก็บรายชื่อคนไว้ใช้งานตอนสร้างช่องผู้รับผิดชอบ ---
+                if (personRes.data) {
+                    personsList = personRes.data;
+                }
+
+                // รันสร้างช่องผู้รับผิดชอบ 1 ช่องเป็นค่าเริ่มต้น หลังจากโหลดข้อมูลเสร็จ
+                updatePersonFields();
+
             } catch (error) {
                 console.error("Error loading dropdowns:", error);
             }
         }
-        loadDropdowns(); // เรียกใช้งานทันทีที่โหลดหน้าเว็บ
+        loadDropdowns(); 
 
-        // 4. ระบบสร้างช่องเลือกชื่อผู้รับผิดชอบตามจำนวน
-        const totalPersonsSelect = document.getElementById('totalPersons');
+        // 4. ระบบสร้างช่องเลือกชื่อผู้รับผิดชอบแบบกดปุ่มตกลง
+        const totalPersonsInput = document.getElementById('totalPersons');
         const personsContainer = document.getElementById('personsContainer');
+        const btnGenPersons = document.getElementById('btnGenPersons');
 
         function updatePersonFields() {
-            const count = parseInt(totalPersonsSelect.value);
-            personsContainer.innerHTML = ''; // ล้างค่าเดิมออกให้เกลี้ยงก่อน
+            const count = parseInt(totalPersonsInput.value) || 0;
             
+            if (count < 1) {
+                alert('กรุณาระบุจำนวนอย่างน้อย 1 คน');
+                totalPersonsInput.value = 1;
+                return;
+            }
+
+            personsContainer.innerHTML = ''; // ล้างค่าเดิมออกให้เกลี้ยง
+            
+            // สร้างโครงสร้าง <option> ของรายชื่อคนที่โหลดมาเตรียมไว้
+            let optionsHTML = '<option value="">-- กรุณาเลือกรายชื่อ --</option>';
+            personsList.forEach(person => {
+                optionsHTML += `<option value="${person.Per_ID}">${person.Name}</option>`;
+            });
+
+            // วนลูปสร้างช่อง select ตามจำนวนที่ระบุ
             for(let i = 0; i < count; i++) {
                 const div = document.createElement('div');
                 div.className = 'd-flex align-items-center mb-2';
                 div.innerHTML = `
                     <label class="me-2 fw-semibold" style="width: 50px;">คนที่ ${i+1}</label>
                     <select class="form-select flex-grow-1 person-select" required>
-                        <option value="">-- กรุณาเลือกรายชื่อ --</option>
-                        <option value="1">นายทิวัตถ์ บุตรศรี</option>
-                        <option value="2">น.ส.มะลิวรรณ นาคำมูล</option>
-                        <option value="3">น.ส.อรอนงค์ อารีกุล</option>
-                        <option value="4">นางมาลัย อุ่นศรี</option>
+                        ${optionsHTML}
                     </select>
                 `;
                 personsContainer.appendChild(div);
             }
         }
-        totalPersonsSelect.addEventListener('change', updatePersonFields);
-        updatePersonFields(); // รันครั้งแรกตอนเปิดหน้าเว็บ
+
+        // เมื่อกดปุ่มตกลง ให้รันฟังก์ชันสร้างช่องรายชื่อ
+        btnGenPersons.addEventListener('click', updatePersonFields);
 
         // 5. ระบบบันทึกข้อมูลเมื่อกดปุ่ม Save
         document.getElementById('saveForm').addEventListener('submit', async function(e) {
