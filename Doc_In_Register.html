@@ -133,15 +133,8 @@
               <div class="row mb-3 align-items-center">
                     <label class="col-sm-4 col-form-label text-sm-end">จาก</label>
                     <div class="col-sm-4">
-                        <select class="form-select" name="From_ID" required>
-                            <option value="1">คณะเกษตรศาสตร์</option>
-                            <option value="2">คณะครุศาสตร์</option>
-                            <option value="3">คณะเทคโนโลยีอุตสาหกรรม</option>
-                            <option value="4">คณะบริหารธุรกิจและการจัดการ</option>
-                            <option value="5">คณะมนุษยศาสตร์และสังคมศาสตร์</option>
-                            <option value="6">คณะวิทยาศาสตร์</option>
-                            <option value="7">คณะแพทย์แผนไทยและแพทย์ทางเลือก</option>
-                            <option value="8">คณะนิติศาสตร์</option>
+                        <select class="form-select" name="From_ID" id="fromSelect" required>
+                            <option value="">-- กำลังโหลดข้อมูล... --</option>
                         </select>
                     </div>
                     <div class="col-sm-3">
@@ -152,10 +145,8 @@
                 <div class="row mb-3 align-items-center">
                     <label class="col-sm-4 col-form-label text-sm-end">ถึง</label>
                     <div class="col-sm-4">
-                         <select class="form-select" name="To_ID" required>
-                            <option value="1">ผู้อำนวยการศูนย์คอมพิวเตอร์</option>
-                            <option value="2">ผู้อำนวยการสำนักงานอธิการบดี</option>
-                            <option value="3">อธิการบดีมหาวิทยาลัยราชภัฏอุบลราชธานี</option>
+                         <select class="form-select" name="To_ID" id="toSelect" required>
+                            <option value="">-- กำลังโหลดข้อมูล... --</option>
                         </select>
                     </div>
                     <div class="col-sm-3">
@@ -243,7 +234,36 @@
         }
         checkLogin();
 
-        // 3. ระบบสร้างช่องเลือกชื่อผู้รับผิดชอบตามจำนวน
+        // 3. ดึงข้อมูลหน่วยงานจากฐานข้อมูล (ช่อง จาก และ ถึง)
+        async function loadDropdowns() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('From')
+                    .select('*')
+                    .order('From_ID', { ascending: true });
+
+                if (error) throw error;
+
+                const fromSelect = document.getElementById('fromSelect');
+                const toSelect = document.getElementById('toSelect');
+
+                // เคลียร์ค่าเริ่มต้น
+                fromSelect.innerHTML = '<option value="">-- เลือกหน่วยงาน (จาก) --</option>';
+                toSelect.innerHTML = '<option value="">-- เลือกหน่วยงาน (ถึง) --</option>';
+
+                if (data) {
+                    data.forEach(item => {
+                        fromSelect.innerHTML += `<option value="${item.From_ID}">${item.From_Name}</option>`;
+                        toSelect.innerHTML += `<option value="${item.From_ID}">${item.From_Name}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading dropdowns:", error);
+            }
+        }
+        loadDropdowns(); // เรียกใช้งานทันทีที่โหลดหน้าเว็บ
+
+        // 4. ระบบสร้างช่องเลือกชื่อผู้รับผิดชอบตามจำนวน
         const totalPersonsSelect = document.getElementById('totalPersons');
         const personsContainer = document.getElementById('personsContainer');
 
@@ -270,7 +290,7 @@
         totalPersonsSelect.addEventListener('change', updatePersonFields);
         updatePersonFields(); // รันครั้งแรกตอนเปิดหน้าเว็บ
 
-        // 4. ระบบบันทึกข้อมูลเมื่อกดปุ่ม Save
+        // 5. ระบบบันทึกข้อมูลเมื่อกดปุ่ม Save
         document.getElementById('saveForm').addEventListener('submit', async function(e) {
             e.preventDefault(); 
             
@@ -288,9 +308,9 @@
                     Year: formData.get('Year'),
                     DateOfDoc: formData.get('DateOfDoc'),
                     From_ID: formData.get('From_ID'),
-                    Remark_From: formData.get('Remark_From'), // <-- เพิ่มบรรทัดนี้
+                    Remark_From: formData.get('Remark_From'), 
                     To_ID: formData.get('To_ID'),
-                    Remark_To: formData.get('Remark_To'),     // <-- เพิ่มบรรทัดนี้
+                    Remark_To: formData.get('Remark_To'),     
                     Title: formData.get('Title'),
                     Detail: formData.get('Detail'),
                     Total: formData.get('Total'),
