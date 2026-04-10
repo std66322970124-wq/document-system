@@ -63,6 +63,19 @@
             border-radius: 20px;
             padding: 5px 25px;
         }
+        .btn-excel {
+            background-color: #107c41; /* สีเขียวสไตล์ Excel */
+            color: white;
+            border-radius: 20px;
+            padding: 5px 25px;
+            font-weight: bold;
+            border: none;
+            transition: all 0.3s;
+        }
+        .btn-excel:hover {
+            background-color: #0b5e31;
+            color: white;
+        }
         .table-custom {
             background-color: white;
             border: 1px solid #dee2e6;
@@ -98,6 +111,8 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="background-overlay"></div>
@@ -118,6 +133,7 @@
             </select>
             <button type="submit" class="btn btn-search">ค้นหา</button>
             <button type="button" class="btn btn-secondary rounded-pill px-4" onclick="resetSearch()">ล้างค่า</button>
+            <button type="button" class="btn btn-excel" onclick="exportToExcel()">📥 ส่งออก Excel</button>
         </div>
     </form>
 
@@ -469,6 +485,65 @@
         document.getElementById('search_title').value = '';
         document.getElementById('search_status').value = '';
         loadData(); 
+    }
+
+    // ============================================
+    // ฟังก์ชันใหม่: ส่งออกข้อมูลเป็นไฟล์ Excel
+    // ============================================
+    function exportToExcel() {
+        if (!currentData || currentData.length === 0) {
+            alert('ไม่มีข้อมูลสำหรับส่งออก กรุณาค้นหาข้อมูลก่อนครับ');
+            return;
+        }
+
+        // 1. จัดเตรียมข้อมูล (ดึงมาเฉพาะคอลัมน์ที่ต้องการโชว์ใน Excel)
+        const excelData = currentData.map((row, index) => {
+            // คำนวณวันเหมือนที่ทำในตาราง
+            let totalDays = '-';
+            if (row.Doc_In_Date && row.Date_Done) {
+                const startDate = new Date(row.Doc_In_Date);
+                const endDate = new Date(row.Date_Done);
+                const diffTime = endDate - startDate;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                totalDays = diffDays >= 0 ? diffDays : 0; 
+            }
+
+            // ดึงชื่อผู้รับผิดชอบ
+            let responsibleNames = '-';
+            if (row.Responsible_Person && row.Responsible_Person.length > 0) {
+                responsibleNames = row.Responsible_Person
+                    .map(rp => rp.Person ? rp.Person.Name : '')
+                    .filter(name => name !== '') 
+                    .join(', ');
+            }
+
+            return {
+                'ลำดับที่': index + 1,
+                'วันเดือนปีที่ลงรับหนังสือ': row.Doc_In_Date ? new Date(row.Doc_In_Date).toLocaleDateString('th-TH') : '-',
+                'ประเภทหนังสือ': row.Type ? row.Type.Type_Name : '-',
+                'เลขที่หนังสือ': row.NumDoc || '-',
+                'พ.ศ.': row.Year || '-',
+                'ลงวันที่': row.DateOfDoc ? new Date(row.DateOfDoc).toLocaleDateString('th-TH') : '-',
+                'จาก': row.FromData ? row.FromData.From_Name : '-',
+                'ถึง': row.ToData ? row.ToData.From_Name : '-',
+                'เรื่อง': row.Title || '-',
+                'รายละเอียด': row.Detail || '-',
+                'ผู้รับผิดชอบ': responsibleNames,
+                'วันที่ดำเนินการแล้วเสร็จ': row.Date_Done ? new Date(row.Date_Done).toLocaleDateString('th-TH') : '-',
+                'สถานะ': row.Doc_Status ? row.Doc_Status.Status_Name : '-',
+                'รวมเวลา (วัน)': totalDays
+            };
+        });
+
+        // 2. แปลงข้อมูล JSON เป็น Worksheet ของ Excel
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+        // 3. สร้าง Workbook เปล่าๆ แล้วจับ Worksheet ยัดเข้าไป
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "ทะเบียนลงรับหนังสือ");
+
+        // 4. สั่งดาวน์โหลดไฟล์
+        XLSX.writeFile(workbook, 'ทะเบียนลงรับหนังสือภายใน.xlsx');
     }
 
     // ฟังก์ชันเริ่มต้นการทำงานของหน้าเว็บ
