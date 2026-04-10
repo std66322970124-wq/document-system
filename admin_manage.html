@@ -62,7 +62,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>ชื่อหน่วยงาน</th>
-                                <th>จัดการ</th>
+                                <th style="min-width: 130px;">จัดการ</th>
                             </tr>
                         </thead>
                         <tbody id="deptTableBody">
@@ -88,7 +88,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>ชื่อ-นามสกุล</th>
-                                <th>จัดการ</th>
+                                <th style="min-width: 130px;">จัดการ</th>
                             </tr>
                         </thead>
                         <tbody id="personTableBody">
@@ -117,7 +117,6 @@
             return;
         }
 
-        // ดึงข้อมูลผู้ใช้จากตาราง Person เพื่อเช็ก Permission
         const { data: userData, error } = await supabaseClient
             .from('Person')
             .select('Permission')
@@ -140,11 +139,15 @@
         
         if (data) {
             data.forEach(dept => {
+                // เพิ่มปุ่ม "แก้ไข" เข้าไปข้างปุ่มลบ
                 tbody.innerHTML += `
                     <tr>
                         <td>${dept.From_ID}</td>
                         <td class="text-start">${dept.From_Name}</td>
-                        <td><button class="btn btn-danger btn-sm rounded-pill" onclick="deleteDept(${dept.From_ID})">ลบ</button></td>
+                        <td>
+                            <button class="btn btn-warning btn-sm rounded-pill fw-bold" onclick="editDept(${dept.From_ID}, '${dept.From_Name}')">✏️ แก้ไข</button>
+                            <button class="btn btn-danger btn-sm rounded-pill fw-bold" onclick="deleteDept(${dept.From_ID})">🗑️ ลบ</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -163,10 +166,29 @@
         }
     });
 
+    // ฟังก์ชันใหม่: แก้ไขหน่วยงาน
+    async function editDept(id, currentName) {
+        const newName = prompt('✏️ แก้ไขชื่อหน่วยงาน:', currentName);
+        
+        // เช็กว่าผู้ใช้พิมพ์ค่ามาจริงๆ และไม่ใช่ค่าเดิมหรือค่าว่าง
+        if (newName !== null && newName.trim() !== '' && newName.trim() !== currentName) {
+            const { error } = await supabaseClient
+                .from('From')
+                .update({ From_Name: newName.trim() })
+                .eq('From_ID', id);
+                
+            if (error) {
+                alert('เกิดข้อผิดพลาดในการแก้ไข: ' + error.message);
+            } else {
+                loadDepartments(); // โหลดตารางใหม่
+            }
+        }
+    }
+
     async function deleteDept(id) {
-        if(confirm('ระวัง! การลบหน่วยงานอาจกระทบกับข้อมูลหนังสือที่เคยบันทึกไว้ ยืนยันการลบ?')) {
+        if(confirm('🚨 ระวัง! การลบหน่วยงานอาจกระทบกับข้อมูลหนังสือที่เคยบันทึกไว้ ยืนยันการลบ?')) {
             const { error } = await supabaseClient.from('From').delete().eq('From_ID', id);
-            if (error) alert('ไม่สามารถลบได้ เนื่องจากข้อมูลนี้ถูกใช้งานอยู่');
+            if (error) alert('ไม่สามารถลบได้ เนื่องจากข้อมูลนี้ถูกใช้งานอยู่ในเอกสาร');
             else loadDepartments();
         }
     }
@@ -181,11 +203,15 @@
         
         if (data) {
             data.forEach(person => {
+                // เพิ่มปุ่ม "แก้ไข" เข้าไปข้างปุ่มลบ
                 tbody.innerHTML += `
                     <tr>
                         <td>${person.Per_ID}</td>
                         <td class="text-start">${person.Name}</td>
-                        <td><button class="btn btn-danger btn-sm rounded-pill" onclick="deletePerson(${person.Per_ID})">ลบ</button></td>
+                        <td>
+                            <button class="btn btn-warning btn-sm rounded-pill fw-bold" onclick="editPerson(${person.Per_ID}, '${person.Name}')">✏️ แก้ไข</button>
+                            <button class="btn btn-danger btn-sm rounded-pill fw-bold" onclick="deletePerson(${person.Per_ID})">🗑️ ลบ</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -196,7 +222,6 @@
         e.preventDefault();
         const name = document.getElementById('newPersonName').value;
         
-        // กำหนด Permission เริ่มต้นเป็น 'user' และ Status เป็น '1'
         const { error } = await supabaseClient.from('Person').insert([{ 
             Name: name, 
             Permission: 'user',
@@ -210,8 +235,27 @@
         }
     });
 
+    // ฟังก์ชันใหม่: แก้ไขผู้รับผิดชอบ
+    async function editPerson(id, currentName) {
+        const newName = prompt('✏️ แก้ไขชื่อ-นามสกุล:', currentName);
+        
+        // เช็กว่าผู้ใช้พิมพ์ค่ามาจริงๆ และไม่ใช่ค่าเดิมหรือค่าว่าง
+        if (newName !== null && newName.trim() !== '' && newName.trim() !== currentName) {
+            const { error } = await supabaseClient
+                .from('Person')
+                .update({ Name: newName.trim() })
+                .eq('Per_ID', id);
+                
+            if (error) {
+                alert('เกิดข้อผิดพลาดในการแก้ไข: ' + error.message);
+            } else {
+                loadPersons(); // โหลดตารางใหม่
+            }
+        }
+    }
+
     async function deletePerson(id) {
-        if(confirm('ยืนยันการลบรายชื่อนี้ใช่หรือไม่?')) {
+        if(confirm('🚨 ยืนยันการลบรายชื่อนี้ใช่หรือไม่?')) {
             const { error } = await supabaseClient.from('Person').delete().eq('Per_ID', id);
             if (error) alert('ไม่สามารถลบได้ เนื่องจากชื่อนี้เชื่อมโยงกับเอกสารอยู่');
             else loadPersons();
